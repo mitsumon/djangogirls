@@ -35,5 +35,7 @@
             <p>No comments here yet :(<</p>
             <a class="btn btn-default" href="{% url 'add_comment_to_post' pk=post.pk %}">Add comment</a>
         {% endfor %}
+        <hr>
+        <a class="btn btn-default" href="{% url 'add_comment_to_post' pk=post.pk %}">Add comment</a>
     </div>
 {% endblock %}
