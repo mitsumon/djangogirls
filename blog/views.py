@@ -1,33 +1,50 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views import generic
 
-from .models import Post, Comment
 from .forms import CommentForm, PostForm
+from .models import Comment, Post
 
-def post_list(request):
-    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
-    return render(request, 'blog/post_list.html', {'posts': posts})
-
-
-def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    return render(request, 'blog/post_detail.html', {'post': post})
+# def post_list(request):
+#     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
+#     return render(request, 'blog/post_list.html', {'posts': posts})
 
 
-@login_required
-def post_new(request):
-    if request.method == 'POST':
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = PostForm()
+class PostListView(generic.ListView):
+    queryset = Post.objects.orderby_published()
 
-    return render(request, 'blog/post_edit.html', {'form': form})
+
+# def post_detail(request, pk):
+#     post = get_object_or_404(Post, pk=pk)
+#     return render(request, 'blog/post_detail.html', {'post': post})
+
+
+class PostDetailView(generic.DetailView):
+    model = Post
+
+
+# @login_required
+# def post_new(request):
+#     if request.method == 'POST':
+#         form = PostForm(request.POST)
+#         if form.is_valid():
+#             post = form.save(commit=False)
+#             post.author = request.user
+#             post.save()
+#             return redirect('post_detail', pk=post.pk)
+#     else:
+#         form = PostForm()
+
+#     return render(request, 'blog/post_edit.html', {'form': form})
+
+@method_decorator(login_required, name='dispatch')
+class PostCreateView(generic.CreateView):
+    model = Post
+    form_class = PostForm
+    success_url = '/posts'
+    template_name = 'blog/post_edit.html'
 
 
 @login_required
